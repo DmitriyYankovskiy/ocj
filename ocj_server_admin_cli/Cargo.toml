@@ -1,0 +1,21 @@
+[package]
+name = "ocj_server_admin_cli"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ocj_config = {path = "../ocj_config"}
+
+reqwest = {version = "*", features = ["json", "blocking"]}
+log = {version = "*"}
+env_logger = {version = "*"}
+
+serde = {version = "*", features = ["derive"]}
+serde_json = {version = "*"}
+
+flate2 = {version = "*"}
+tar = {version = "*"}
+
+text_io = {version = "*"}
+
+colored = {version = "*"}

@@ -1,0 +1,23 @@
+[package]
+name = "ocj_machine"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ocj_config = {path = "../ocj_config"}
+
+rand = {version = "*"}
+
+reqwest = {version = "*", features = ["json"]}
+log = {version = "*"}
+env_logger = {version = "*"}
+
+tokio = {version = "*", features = ["full"]}
+tokio-tungstenite = {version = "*"}
+futures = {version = "*"}
+
+serde = {version = "*", features = ["derive"]}
+serde_json = {version = "*"}
+
+tokio-tar = {version = "*"}
+async-compression = {version = "*", features = ["all"]}
