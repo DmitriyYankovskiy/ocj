@@ -6,7 +6,7 @@ use rand::TryRngCore;
 
 use crate::{error::{self, OcjError}, Result, config};
 
-use config::{auth::Token, msg::Secure};
+use config::auth::Token;
 
 
 type Hasher = Sha256;
@@ -61,11 +61,5 @@ impl Service {
         } else {
             Ok(())
         }
-    }
-
-    pub async fn unwrap_secure<T> (&self, ip: &IpAddr, msg: Secure<T>) -> Result<T> {
-        let Secure {token, msg} = msg;
-        self.check_token(ip, &token).await?;
-        Ok(msg)
     }
 } 

@@ -3,7 +3,7 @@ use std::io::Error;
 
 use colored::Colorize;
 
-use ocj_config::{self as config, auth::Token, msg::{admin_to_server as output_msg, Secure, ServerToAdmin as InputMsg}};
+use ocj_config::{self as config, auth::Token, msg::{admin_to_server as output_msg, ServerToAdmin as InputMsg}};
 
 // #[tokio::main]
 fn main() -> std::io::Result<()> {
@@ -16,15 +16,12 @@ fn main() -> std::io::Result<()> {
 
     let ip = &format!("http://{ip}:{}", config::port::HTTP_FOR_ADMIN);
 
-    let token: Token = match client.get(format!("{ip}/tokens/gen")).json(&key).send().unwrap().json().unwrap() {
-        InputMsg::PermissionGranted(t) => {
+    let token: Token = match client.get(format!("{ip}/auth/token")).json(key).send().unwrap().json().unwrap() {
+        InputMsg::Ok(t) => {
             t
         },
-        InputMsg::InternalError(e) => {
-            return Err(Error::new(std::io::ErrorKind::Other, format!("internal server error {e}")));            
-        }
-        InputMsg::PermissionDenied() => {
-            return Err(Error::new(std::io::ErrorKind::PermissionDenied, "incorrect key"));
+        InputMsg::Err(e) => {
+            return Err(Error::new(std::io::ErrorKind::Other, e.as_ref()));            
         }
     };
 
@@ -40,11 +37,15 @@ fn main() -> std::io::Result<()> {
          
             "tests:upd" => {
                 let tests = file::get_compressed_tests()?;
-                let msg: output_msg::tests::Update = Secure::new(token, tests);
-                if let InputMsg::PermissionGranted(()) = client.patch(format!("{ip}/contest/tests")).json(&msg).send().unwrap().json().unwrap() {
-                    println!("{}", "tests was updated".blue());
-                } else {
-                    println!("{}", "error".red());
+                let msg: output_msg::contest::tests::Update = tests;
+                let res: InputMsg<()> = client.patch(format!("{ip}/contest/tests"))
+                    .header(config::auth::SECURE_TOKEN_HTTP_HEADER, token.to_string())
+                    .json(&msg)
+                    .send().unwrap()
+                    .json().unwrap();
+                match res {
+                    InputMsg::Ok(()) => println!("{}", "tests was updated".blue()),
+                    InputMsg::Err(e) => println!("{}", e.red()),
                 }
             }
             _ => {}

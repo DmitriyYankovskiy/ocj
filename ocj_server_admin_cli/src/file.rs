@@ -1,4 +1,4 @@
-use std::{fs, io::{BufWriter, Write}};
+use std::io::BufWriter;
 use flate2::{write::GzEncoder, Compression};
 use ocj_config::{contest::File, file as config};
 

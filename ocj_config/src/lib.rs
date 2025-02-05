@@ -5,9 +5,26 @@ pub mod port {
 }
 
 pub mod auth {
+    pub const SECURE_TOKEN_HTTP_HEADER: &'static str = "Access-Token";
+
+    use std::str::FromStr;
+
     use serde::{Serialize, Deserialize};
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
     pub struct Token(pub u128);
+    impl FromStr for Token {
+        type Err = <u128 as FromStr>::Err;
+    
+        fn from_str(s: &str) -> Result<Self, Self::Err> {
+            Ok(Self(u128::from_str(s)?))
+        }
+    }
+
+    impl ToString for Token {
+        fn to_string(&self) -> String {
+            self.0.to_string()
+        }
+    }
 }
 
 pub mod file {
@@ -29,7 +46,6 @@ pub mod contest {
 
 pub mod msg {
     use std::time;
-    use crate::auth;
 
     use serde::{Serialize, Deserialize};
     use crate::{solution, contest};
@@ -54,37 +70,29 @@ pub mod msg {
         Set(time::Duration),
     }
 
-    #[derive(Clone, Debug, Serialize, Deserialize)]
-    pub struct Secure<T> {
-        pub token: auth::Token,
-        pub msg: T,
-    }
-
-    impl<T> Secure<T> {
-        pub fn new(token: auth::Token, msg: T) -> Self {
-            Self {
-                token,
-                msg,
+    pub mod admin_to_server {
+        use super::contest::File;
+        pub mod contest {
+            use super::*;
+            pub mod tests {
+                use super::*;
+                pub type Update = Box<File>;
+            }
+            pub mod time {
+                use super::*;
+                pub type Update = Box<File>;
             }
         }
-    }
-
-    pub mod admin_to_server {
-        use super::{Secure, contest};
-        pub mod tests {
-            use super::*;
-            pub type Update = Secure<Box<contest::File>>;
-        }
         pub mod tokens {
-            pub type Gen = Box<str>;
+            pub type Get = Box<str>;
         }
+
     }
 
     #[derive(Clone, Debug, Serialize, Deserialize)]
     pub enum ServerToAdmin<T> {
-        PermissionGranted(T),
-        PermissionDenied(),
-        InternalError(Box<str>),
+        Ok(T),
+        Err(Box<str>),
     }
     // #[derive(Debug, Serialize, Deserialize)]
     // pub enum AdminToServer {
