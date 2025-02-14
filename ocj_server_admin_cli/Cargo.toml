@@ -16,6 +16,6 @@ serde_json = {version = "*"}
 flate2 = {version = "*"}
 tar = {version = "*"}
 
-text_io = {version = "*"}
+chrono = {version = "*"}
 
 colored = {version = "*"}

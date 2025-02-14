@@ -4,7 +4,7 @@ mod client;
 mod machine;
 mod error;
 mod file;
-mod contest;
+mod contest_time;
 
 use error::{OcjError, Result};
 use ocj_config::{self as config, solution::Lang};
@@ -19,12 +19,12 @@ struct App {
 
     auth: auth::Service,
     machine: machine::Service,
-    contest: contest::Service,
+    contest_time: contest_time::Service,
     solutions: Mutex<HashMap<solution::Id, client::Id>>,
 }
 
 impl App {
-    pub async fn init(auth: auth::Service, machine: machine::Service, contest: contest::Service) -> Result<Self> {
+    pub async fn init(auth: auth::Service, machine: machine::Service, contest_time: contest_time::Service) -> Result<Self> {
         Ok(Self {
             auth,
             ip: {
@@ -33,7 +33,7 @@ impl App {
                 ip
             },
             machine,
-            contest,
+            contest_time,
 
             solutions: Mutex::new(HashMap::new()),
         })
@@ -61,6 +61,16 @@ impl App {
         self.machine.broadcast_update_tests(data).await;
         Ok(())
     }
+
+    pub async fn start_contest(&self) -> Result<()> {
+        log::info!("contest started");
+        Ok(())
+    }
+
+    pub async fn finish_contest(&self) -> Result<()> {
+        log::info!("contest finished");
+        Ok(())
+    }
 }
 
 #[tokio::main]
@@ -71,7 +81,7 @@ async fn main() -> Result<()> {
     
     let auth = auth::Service::init(&key);
     let machine = machine::Service::init();
-    let contest = contest::Service::init();
+    let contest = contest_time::Service::init();
 
     let app = Arc::new(App::init(auth, machine, contest).await?);
     let app_clone = app.clone();

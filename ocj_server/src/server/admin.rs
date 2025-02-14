@@ -1,9 +1,9 @@
 use crate::{config, App};
 
-use axum::{extract::{ConnectInfo, Json, Request, State}, http::StatusCode, middleware::{self, Next}, response::{IntoResponse, Response}, routing::{get, patch}, Router};
+use axum::{extract::{ConnectInfo, Json, Request, State}, http::StatusCode, middleware::{self, Next}, response::{IntoResponse, Response}, routing::{get, patch, post}, Router};
 use config::msg::admin_to_server as input_msg;
 use config::msg::ServerToAdmin as OutputMsg;
-use ocj_config::{auth::Token, contest::File};
+use ocj_config::auth::Token;
 
 use std::{net::SocketAddr, sync::Arc};
 
@@ -40,6 +40,17 @@ mod contest {
         }
     }
 
+    pub mod state {
+        use super::*;
+        pub async fn set_ready(State(app): State<Arc<App>>, Json(msg): Json<input_msg::contest::state::SetReady>) -> impl IntoResponse  {            
+            if let Err(e) = app.contest_time.ready(&msg, Arc::downgrade(&app)).await {
+                Json::from(OutputMsg::<()>::Err(e.to_string().into()))
+            } else {
+                Json::from(OutputMsg::Ok(()))
+            }
+        }
+    }
+
     // pub mod time {
     //     use super::*;
     //     pub async fn update(State(app): State<Arc<App>>, ConnectInfo(ci): ConnectInfo<SocketAddr>, Json(msg): Json<input_msg::contest::tests::Update>) -> impl IntoResponse  {
@@ -66,8 +77,7 @@ mod contest {
 
 mod auth {
     use super::*;
-    pub async fn token(State(app): State<Arc<App>>, ConnectInfo(ci): ConnectInfo<SocketAddr>, Json(msg): Json<input_msg::tokens::Get>) -> impl IntoResponse {        
-        log::debug!("nt");
+    pub async fn token(State(app): State<Arc<App>>, ConnectInfo(ci): ConnectInfo<SocketAddr>, Json(msg): Json<input_msg::tokens::Get>) -> impl IntoResponse {
         let ip = ci.ip();
         let r = match app.auth.login(ip, &msg).await {
             Ok(token) => {
@@ -88,6 +98,9 @@ pub fn router(app: Arc<App>) -> Router<()> {
     let contest: Router<_> = Router::new()
         .route("/tests", patch(contest::tests::update))
         // .route("/time", patch(contest::time::update))
+        .nest("/state", Router::new()
+            .route("/ready", post(contest::state::set_ready))
+        )
         .layer(middleware::from_fn_with_state(app.clone(),auth_mw))
         .with_state(app.clone());
     let auth: Router<_> = Router::new()

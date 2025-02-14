@@ -35,11 +35,19 @@ pub mod file {
 
 pub mod contest {
     pub use serde::{Serialize, Deserialize};
-    #[derive(Debug, Serialize, Deserialize)]
+
+    #[derive(Debug, Serialize, Deserialize, Clone)]
     pub struct Time {
-        start: std::time::SystemTime,
-        duration: Option<std::time::Duration>,
+        pub start: std::time::SystemTime,
+        pub duration: Option<std::time::Duration>,
     }
+
+    #[derive(Clone, Debug, Serialize, Deserialize)]
+    pub enum UpdateDuration {
+        Add(std::time::Duration),
+        Sub(std::time::Duration),
+        Set(Option<std::time::Duration>),
+    }    
 
     pub type File = [u8];
 }
@@ -63,13 +71,6 @@ pub mod msg {
         JudgeResult(solution::JudgeResult),
     }
 
-    #[derive(Clone, Debug, Serialize, Deserialize)]
-    pub enum UpdateDuration {
-        Add(time::Duration),
-        Sub(time::Duration),
-        Set(time::Duration),
-    }
-
     pub mod admin_to_server {
         use super::contest::File;
         pub mod contest {
@@ -81,6 +82,10 @@ pub mod msg {
             pub mod time {
                 use super::*;
                 pub type Update = Box<File>;
+            }
+            pub mod state {
+                use super::*;
+                pub type SetReady = crate::contest::Time;
             }
         }
         pub mod tokens {

@@ -14,6 +14,24 @@ pub enum AuthError {
 }
 
 #[derive(Debug, thiserror::Error)]
+pub enum ContestError {
+    #[error("still in develop")]
+    StillInDevelop,
+
+    #[error("not started yet")]
+    NotStartedYet,
+    
+    #[error("already ready")]
+    AlreadyReady,
+
+    #[error("already going")]
+    AlreadyGoing,
+
+    #[error("already finished")]
+    AlreadyFinished,
+}
+
+#[derive(Debug, thiserror::Error)]
 pub enum OcjError {
     #[error("not a single machine was found")]
     NoneMachineFound,
@@ -38,6 +56,12 @@ pub enum OcjError {
 
     #[error("try rng core error {0:?}")]
     RngCore(<OsRng as TryRngCore>::Error),
+
+    #[error("contest error {0:?}")]
+    Contest(#[from] ContestError),
+
+    #[error("system time error {0:?}")]
+    SystemTime(#[from] std::time::SystemTimeError),
 }
 
 pub type Result<T> = std::result::Result<T, OcjError>;
