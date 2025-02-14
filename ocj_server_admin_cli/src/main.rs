@@ -1,8 +1,8 @@
 mod file;
 mod ui;
-use std::{fs::read, io::{stdin, stdout, Error, Stdin, Write}};
+use std::io::{stdin, stdout, Error, Write};
 
-use chrono::{DateTime, Local, NaiveDate, NaiveDateTime, TimeZone};
+use chrono::{Local, NaiveDateTime, TimeZone};
 use colored::Colorize;
 
 use ocj_config::{self as config, auth::Token, msg::{admin_to_server as output_msg, ServerToAdmin as InputMsg}};
